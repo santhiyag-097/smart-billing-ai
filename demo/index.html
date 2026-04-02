@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Billing</title>
+</head>
+<body>
+
+<h2>Smart Billing System 🛒</h2>
+
+<input type="text" id="item" placeholder="Enter item">
+<button onclick="addItem()">Add</button>
+
+<ul id="cart"></ul>
+
+<button onclick="generateBill()">Generate Bill</button>
+<button onclick="checkTheft()">Check Theft</button>
+
+<h3 id="result"></h3>
+
+<script>
+let cart = [];
+
+function addItem() {
+    let item = document.getElementById("item").value;
+    cart.push(item);
+
+    let li = document.createElement("li");
+    li.innerText = item;
+    document.getElementById("cart").appendChild(li);
+
+    document.getElementById("item").value = "";
+}
+
+async function generateBill() {
+    try {
+        let res = await fetch("http://localhost:8081/api/bill", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ items: cart })
+        });
+
+        let data = await res.json();
+        document.getElementById("result").innerText = "Total: ₹" + data.total;
+    } catch (e) {
+        alert("Backend not connected ❌");
+    }
+}
+
+async function checkTheft() {
+    let detected = ["milk", "bread", "rice"];
+
+    try {
+        let res = await fetch("http://localhost:8081/api/check-theft", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                detected: detected,
+                billed: cart
+            })
+        });
+
+        let data = await res.json();
+
+        if (data.theftDetected) {
+            alert("⚠️ Theft Detected!");
+        } else {
+            alert("All good ✅");
+        }
+    } catch (e) {
+        alert("Backend not connected ❌");
+    }
+}
+</script>
+
+</body>
+</html>
